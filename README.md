@@ -1,9 +1,13 @@
 # Image Similarity Explorer
 
-A small stack for text/image similarity search:
+A prototype for content similarity search demo. The core user flow is: a user uploads content (image or text), and the system returns the most similar existing items. The existing items are images from unsplash.
+
+## Components
+
 - FastAPI backend with pgvector for storage/search
 - FastAPI inference service using SigLIP2
 - a toy React + Vite frontend UI
+- Postgres for ANN embedding search
 
 ## Showcase
 
