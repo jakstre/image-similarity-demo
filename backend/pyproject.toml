@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "backend"
+version = "0.1.0"
+description = "FastAPI backend for similarity search"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.118.0",
+  "uvicorn[standard]>=0.32.0",
+  "httpx>=0.28.0",
+  "pydantic>=2.9.0",
+  "numpy>=2.1.0",
+  "datasets>=4.5.0",
+  "aioboto3>=13.2.0",
+  "python-multipart>=0.0.21",
+  "sqlalchemy>=2.0.36",
+  "asyncpg>=0.31.0",
+  "pgvector>=0.4.2"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/app"]

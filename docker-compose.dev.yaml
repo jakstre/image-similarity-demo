@@ -1,0 +1,45 @@
+services:
+  backend:
+    volumes:
+      - ./backend/src:/app/src
+    command:
+      [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+        "--reload-dir",
+        "/app/src",
+      ]
+
+  inference:
+    volumes:
+      - ./inference/src:/app/src
+    command:
+      [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8001",
+        "--reload",
+        "--reload-dir",
+        "/app/src",
+      ]
+
+  indexer-job:
+    volumes:
+      - ./backend/src/scripts:/app/src/scripts
+      - hf-cache:/root/.cache/huggingface
+
+  frontend:
+    volumes:
+      - ./frontend:/app
+      - frontend-node_modules:/app/node_modules
+
+volumes:
+  frontend-node_modules:

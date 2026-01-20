@@ -1,0 +1,78 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      INFERENCE_URL: "http://inference:8001"
+      DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/unsplash"
+    volumes:
+      - backend-data:/data
+    depends_on:
+      inference:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
+  inference:
+    build: ./inference
+    ports:
+      - "8001:8001"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: "nvidia"
+              count: 1
+              capabilities: ["gpu"]
+    environment:
+      MODEL_ID: "google/siglip2-base-patch16-384"
+      DEVICE: "${DEVICE:-cuda}"
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+
+  indexer-job:
+    profiles:
+      - indexing
+    build: ./backend
+    depends_on:
+      inference:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      INFERENCE_URL: "http://inference:8001"
+      DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/unsplash"
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    command: ["python", "/app/src/scripts/bulk_index.py"]
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE: "http://localhost:8000"
+    depends_on:
+      - backend
+
+  postgres:
+    image: pgvector/pgvector:pg18-trixie
+    environment:
+      POSTGRES_DB: "unsplash"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d unsplash"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+volumes:
+  backend-data:
+  postgres-data:
+  hf-cache:
